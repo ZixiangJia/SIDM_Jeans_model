@@ -1,4 +1,4 @@
-# SIDM
+# Improved Jeans model for SIDM halo profiles
 
 An analytical model for the density profiles of self-interacting dark-matter halos with inhabitant galaxies, affiliated with the paper of Jia, et al. (2026)
 
