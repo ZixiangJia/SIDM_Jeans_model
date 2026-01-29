@@ -679,6 +679,9 @@ def r1_direct_contra(r1_init,halo_init,disk,dlgr=1e-3):
 
 def rd_MMW98(halo_init,spin,jd,md,damping=0.5):
     '''
+
+    ###   UNDER DEVELOPMENT  ###
+
     Compute the size of an exponential disk embedded in a halo 
     using the Mo, Mao & White (1998) model with adiabatic contraction.
     
@@ -761,6 +764,9 @@ def rd_MMW98(halo_init,spin,jd,md,damping=0.5):
 
 def rd_MMW98_SIDM(halo_init,spin,jd,md,p,pmerge_interp,rd_guess,damping=0.5,N=50000):
     """
+
+    ###   UNDER DEVELOPMENT  ###
+
     Calculate scale radius of disk in SIDM halo using iterative method in MMW98 as before.
     
     Syntax:

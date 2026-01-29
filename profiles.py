@@ -3943,7 +3943,7 @@ def stitchSIDMcore2(r1,rho1,M1,halo,disk,r_list=None,N=500):
 
     An improved version, which can check wheter the two solution branches
     have merged and identify both if not. This funcion can work without
-    knowing p_merge.
+    knowing p_merge, but slower and less robust than stitchSIDMcore_given_pmerge.
     
     Syntax:
     
@@ -4035,7 +4035,7 @@ def stitchSIDMcore2(r1,rho1,M1,halo,disk,r_list=None,N=500):
             if np.abs(np.log10(sol_valid[0]/sol_temp[0])) > 1e-3 and sol_temp[-1] < 1e-5: find2sol = True
             Nloop += 1             
         # manage results
-        sol1 = sol_valid # if not find two solutions, sol1 is always the valid one
+        sol1 = sol_valid # if not find two solutions, let sol1 always be the valid one
         sol2 = sol_temp
 
     #### manage outputs ####
@@ -4138,7 +4138,7 @@ def stitchSIDMcore_given_pmerge(r1,rho1,M1,halo,disk,p,pmerge,
     lgsigma0_initial_bounds = (np.log10(0.8*sigmaCDM1),np.log10(1.2*sigmaCDM1))
 
     # compute rhomerge if it's not given
-    if rhomerge is None: rhomerge = _compute_rhodm0_merge(lgrhodm0_bounds,lgsigma0_bounds,disk,rho1,M1,r)
+    if rhomerge is None: rhomerge = _compute_rhodm0_merge(halo,disk,pmerge=pmerge)
 
     # partition the search intervals of central density for the two solution branches
     lgrhodm0_lowrho_bounds = (np.log10(rho1),np.log10(rhomerge))
@@ -4259,7 +4259,7 @@ def _generate_initial_guess(lgrhodm0_initial_bounds,lgsigma0_initial_bounds):
     lgsigma0_random = np.random.uniform(lgsigma0_initial_bounds[0], lgsigma0_initial_bounds[1])
     return [lgrhodm0_random, lgsigma0_random]
 
-def _compute_rhodm0_merge(lgrhodm0_bounds,lgsigma0_bounds,disk,rhoCDM1,MCDM1,r):
+def _compute_rhodm0_merge(halo,disk,pmerge=None):
     """
     Find the central DM density at the merge point by solving the Jeans
     equation with multiple random initial guesses.
@@ -4270,42 +4270,56 @@ def _compute_rhodm0_merge(lgrhodm0_bounds,lgsigma0_bounds,disk,rhoCDM1,MCDM1,r):
     improve robustness in the optimization landscape.
     
     Syntax:
-        _compute_rhodm0_merge(lgrhodm0_bounds, lgsigma0_bounds, 
-                               disk, rhoCDM1, MCDM1, r)
+        _compute_rhodm0_merge(halo,disk,pmerge)
     
     where
-        lgrhodm0_bounds: tuple (min, max) for log10(central DM density)
-                         in [log10(M_sun/kpc^3)]
-        lgsigma0_bounds: tuple (min, max) for log10(central velocity dispersion)
-                         in [log10(kpc/Gyr)]
+        halo: the halo profile for the CDM-like outskirt 
+            (a density profile object)
         disk: galaxy disk profile (Hernquist or exp object)
-        rhoCDM1: DM density at r1 from CDM profile [M_sun/kpc^3] (float)
-        MCDM1: DM mass within r1 from CDM profile [M_sun] (float)
-        r: radial grid array [kpc] (array)
+        pmerge: the product value when the two solution branch of
+               the Jeans model merge.
     
     Return:
         Central DM density at merge point [M_sun/kpc^3] (float)
         Returns None if no solution found after maximum attempts
     """
+    # compute pmerge if pmerge is not given
+    if pmerge == None: _,pmerge = tmerge(halo,disk)
+
+    # compute r1 at pmerge
+    r1merge,rho1,M1 = r1(halo,sigmamx=1,tage=pmerge,disk=disk)
+
+    # prepare a few quantities
+    sigmaCDM1 = halo.sigma(r1merge) # approximate sigma(r1_contra) using sigma(r1_init)
+    _,rhoCDMres,_ = gh.r1_direct_contra(cfg.Rres,halo,disk) # density at a very small r
+
+    # define the radius array
+    r = np.logspace(-3,np.log10(r1merge),500)
+    
+    # specify the searching range and initial guess range
+    lgrhodm0_bounds = (np.log10(rho1),np.log10(rhoCDMres))
+    lgsigma0_bounds = (np.log10(0.5*sigmaCDM1),np.log10(4.0*sigmaCDM1))
+    lgsigma0_initial_bounds = (np.log10(0.8*sigmaCDM1),np.log10(1.2*sigmaCDM1))
+
     # initialization
     Findsolution,Nloop = False,0
 
     while not Findsolution:
         # generate random initial guess within bounds
-        initial_guess = _generate_initial_guess(lgrhodm0_bounds,lgsigma0_bounds)
+        initial_guess = _generate_initial_guess(lgrhodm0_bounds,lgsigma0_initial_bounds)
 
         # search for the solution
         if isinstance(disk,Hernquist):
             rhob0,r0 = disk.rho0,disk.r0
             res = minimize(delta,initial_guess,
-                args=(rhob0,r0,rhoCDM1,MCDM1,r),
+                args=(rhob0,r0,rho1,M1,r),
                 bounds=(lgrhodm0_bounds,lgsigma0_bounds),
                 method = 'Nelder-Mead'
                 )
         elif isinstance(disk,exp):
             Mb,r0 = disk.Mb,disk.r0
             res = minimize(delta_exp,initial_guess,
-                    args=(Mb,r0,rhoCDM1,MCDM1,r),
+                    args=(Mb,r0,rho1,M1,r),
                     bounds=(lgrhodm0_bounds,lgsigma0_bounds),
                     method = 'Nelder-Mead'
                     )
