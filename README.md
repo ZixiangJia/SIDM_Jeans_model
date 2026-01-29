@@ -18,7 +18,7 @@ This is an upgrated version based on the model in Jiang, et al. (2023).  Our imp
 
 (2) Given the product of self-interaction cross-section and halo age, solve for the radius of frequent scattering, r1, using the density profile and velocity-dispersion profile of the contracted CDM halo. If the two solution branches of Jeans model have merged (product > product_merge), the product should be mirrored about product_merge, which is the product value where the two solution branches merge.
 
-(3) Integrate the spherical Jeans-Poisson equation to obtain an isothermal core profile -- do this iteratively to find the central DM density and the central velocity dispersion by minimizing the relative stitching error at r1. If the two solution branches of Jeans model have not merged (product < product_merge, corresponding to the core-growth stage), return the low-density solution. If not, the halo has entered the core-collapse stage (product > product_merge) and the two solution branches have merged, we approximate the profile using the mirrored high-density solution at product_mirror = 2*product_merge - product. 
+(3) Integrate the spherical Jeans-Poisson equation to obtain an isothermal core profile -- do this iteratively to find the central DM density and the central velocity dispersion by minimizing the relative stitching error at r1. If the two solution branches of Jeans model have not merged (product < product_merge, corresponding to the core-growth stage), return the low-density solution. If not, the halo has entered the core-collapse stage (product > product_merge) and the two solution branches have merged, we approximate the profile using the high-density solution at product_mirror = 2*product_merge - product. 
 
 - Modules
 
