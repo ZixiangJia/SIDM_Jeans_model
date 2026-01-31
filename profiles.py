@@ -22,15 +22,16 @@
 #   2. revise the Coulomb log in the function fDF below
 
 # Zixiang Jia 2025, Peking University --- revision:
-# - added functions that are used for computing SIDM halo profile
-#   using the isotherma Jeans model (Jia+26, Jiang+23)
+# - added functions that are used for computing effective SIDM 
+#   cross section (Yang+22)
+# - added a new halo class DC14 (Di Cintio+14)
+# - improved the isotherma Jeans model (Jia+26, Jiang+23)
 
 #########################################################################
 
 import config as cfg # for global variables
 import cosmo as co # for cosmology related functions
-import galhalo as gh #
-import profiles as pr
+import galhalo as gh 
 
 from scipy import integrate
 from scipy.integrate import quad
@@ -4558,7 +4559,7 @@ def create_sigmaeff_vmax_interpolation(Vmax_range, sigma0, omega, n_points=100, 
     
     # Calculate sigmaeff for each Vmax point
     for i, Vmax in enumerate(Vmax_grid):
-        sigmaeff_grid[i] = pr.compute_sigmaeff(Vmax, sigma0, omega)
+        sigmaeff_grid[i] = compute_sigmaeff(Vmax, sigma0, omega)
     
     # Create interpolation function
     interp_func = interp1d(Vmax_grid, sigmaeff_grid, 
