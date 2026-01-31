@@ -3740,19 +3740,19 @@ def tmerge(halo_init,disk=None):
     v0 = np.sqrt(M0/rs*cfg.G)
     trans = a0*v0*rhos*2.08889e-10 # conversion factor for normalized time
 
-    # for DM only cases, create dummy disk
+    # for DM only cases, create a dummy disk
     if disk is None: disk = Hernquist(1.,1000.)
 
     # compute tmerge by bisection in log space
     lgtnor_lo = -2. # lower bound in log10(normalized time)
     lgtnor_hi = 4.1 # upper bound in log10(normalized time)
 
-    # find a lower boundary where two solution branches don't merge
+    # make sure the lower boundary is not extremely low that no solution can be found
     product_lo = 10.**lgtnor_lo/trans
     r1_lo,rhoCDM1,MCDM1 = r1(halo_init,sigmamx=1.,tage=product_lo,disk=disk)
     merge_lo = checkmerge(r1_lo,rhoCDM1,MCDM1,halo_init,disk)
 
-    # iterate to find valid lower boundary
+    # iterate to find a valid lower boundary
     while merge_lo and lgtnor_lo < lgtnor_hi:
         lgtnor_lo += 0.1 # increment lower bound
         product_lo = 10.**lgtnor_lo/trans
